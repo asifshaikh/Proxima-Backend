@@ -1,9 +1,11 @@
 import uuid
 from app.extensions import db
 from .models import Hackathon
-from .exceptions import HackathonNotFoundError,HackathonCreateError,HackathonQueryError,Teamsizelimit
+from .exceptions import (
+    HackathonNotFoundError,HackathonCreateError,HackathonQueryError,Teamsizelimit
+    )
 from sqlalchemy.exc import SQLAlchemyError
-from .schemas import HackathonCreateSchema
+from .schemas import HackathonCreateSchema,HackathonUpdateSchema
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query
@@ -106,3 +108,55 @@ class HackathonService:
             # current_app.logger.error(f"Failed fetching hackathons: {e}")
             raise HackathonQueryError("Database error while fetching hackathons.")
 
+
+    @staticmethod
+    def update_hackathon(hackathon_id: str, organizer_id: str, data: HackathonUpdateSchema):
+        hackathon = Hackathon.query.get(hackathon_id)
+
+        if not hackathon:
+            raise HackathonNotFoundError("Hackathon not found.")
+
+        # Permission check
+        if hackathon.organizer_id != organizer_id:
+            raise PermissionError("You cannot update someone else's hackathon.")
+
+        # Apply updated fields
+        for field, value in data.dict(exclude_unset=True).items():
+            setattr(hackathon, field, value)
+
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise HackathonCreateError("Failed to update hackathon.")
+
+        return hackathon
+
+    @staticmethod
+    def delete_hackathon(hackathon_id: str, organizer_id: str):
+        hackathon = Hackathon.query.get(hackathon_id)
+
+        if not hackathon:
+            raise HackathonNotFoundError("Hackathon not found.")
+
+        # Permission check
+        if hackathon.organizer_id != organizer_id:
+            raise PermissionError("You cannot delete someone else's hackathon.")
+
+        try:
+            db.session.delete(hackathon)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise HackathonCreateError("Failed to delete hackathon.")
+
+        return True
+    
+    @staticmethod
+    def get_hackathon_by_id(hackathon_id: str) -> Hackathon:
+        hackathon = Hackathon.query.get(hackathon_id)
+
+        if not hackathon:
+            raise HackathonNotFoundError("Hackathon not found.")
+
+        return hackathon

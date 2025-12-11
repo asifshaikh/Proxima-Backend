@@ -1,3 +1,5 @@
+
+
 class HackathonNotFoundError(Exception):
     pass
 
