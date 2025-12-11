@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from .services import HackathonService
-from .schemas import HackathonCreateSchema,HackathonResponse 
+from .schemas import HackathonCreateSchema,HackathonResponse, HackathonUpdateSchema 
 
 hackathon_bp = Blueprint("hackathons", __name__)
 
@@ -60,3 +60,42 @@ def list_hackathons():
         "total": total,
         "results": results
     }), 200
+
+@hackathon_bp.route("/<hackathon_id>", methods=["PUT"])
+@jwt_required()
+def update_hackathon(hackathon_id):
+    organizer_id = get_jwt_identity()
+    payload = request.get_json()
+
+    dto = HackathonUpdateSchema(**payload)
+
+    hackathon = HackathonService.update_hackathon(
+        hackathon_id=hackathon_id,
+        organizer_id=organizer_id,
+        data=dto
+    )
+
+    return jsonify(HackathonResponse.from_orm(hackathon).dict()), 200
+
+@hackathon_bp.route("/<hackathon_id>", methods=["DELETE"])
+@jwt_required()
+def delete_hackathon(hackathon_id):
+    organizer_id = get_jwt_identity()
+
+    HackathonService.delete_hackathon(
+        hackathon_id=hackathon_id,
+        organizer_id=organizer_id
+    )
+
+    return jsonify({"message": "Hackathon deleted successfully."}), 200
+
+
+@hackathon_bp.route("/view/<hackathon_id>", methods=["GET"])
+@jwt_required()
+def get_hackathon(hackathon_id):
+    user_id = get_jwt_identity()  # returns None if not logged in
+
+    hackathon = HackathonService.get_hackathon_by_id(hackathon_id)
+
+    return jsonify(HackathonResponse.from_orm(hackathon).dict()), 200
+

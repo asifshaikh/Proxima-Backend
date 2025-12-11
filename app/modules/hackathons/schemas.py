@@ -44,3 +44,27 @@ class HackathonResponse(BaseModel):
 
     class Config:
         from_attributes = True  
+
+
+class HackathonUpdateSchema(BaseModel):
+    event_name: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+
+    mode: Optional[str] = None
+    participation_type: Optional[str] = None
+
+    min_team_size: Optional[int] = None
+    max_team_size: Optional[int] = None
+
+    deadline: Optional[datetime] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+
+    entry_fee: Optional[float] = None
+    max_participants: Optional[int] = None
+    tags: Optional[List[str]] = None
+
+    model_config = {
+        "extra": "forbid"
+    }
