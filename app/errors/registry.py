@@ -10,6 +10,8 @@ from app.modules.hackathons.exceptions import (
     HackathonQueryError,
     Teamsizelimit
 )
+
+from app.modules.teams.exceptions import *
 from werkzeug.exceptions import Forbidden
 
 # Map exception -> (HTTP code, default_message)
@@ -23,7 +25,14 @@ ERROR_MAP = {
     HackathonQueryError: (500, "Failed to fetch hackathons."),
     HackathonCreateError: (500, "Failed to create hackathon."),
     Teamsizelimit:(400,"min team size should be lower"),
-    PermissionError: (403, "Not allowed to perform this action.")
+    PermissionError: (403, "Not allowed to perform this action."),
+
+    #teams
+    TeamException : (500,"Teams module error"),
+    NotTeamOwnerException : (400,"not a owner"),
+    MemberAlreadyExistsException : (400,"Team member already exists"),
+    MemberNotFoundException : (404,"Teams member not found"),
+    TeamNotFoundException : (404,"Team not found"),
 
   
 }

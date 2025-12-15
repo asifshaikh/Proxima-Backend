@@ -74,3 +74,11 @@ def update_current_user():
 
     return jsonify(result), 200
     
+@auth_bp.route("/get-all-users", methods=["GET"])
+def get_all_users():
+    users = AuthService.get_all_users()
+    return jsonify({
+        "success": True,
+        "count": len(users),
+        "data": users
+    }), 200

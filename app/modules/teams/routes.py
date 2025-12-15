@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required,get_jwt_identity
 from .services import TeamService
 from pydantic import ValidationError
 from .schemas import (AddMemberSchema,TeamCreateSchema,TeamMemberReadSchema,RemoveMemberParamsSchema,UpdateMemberRoleSchema)
-
+from app.modules.teams.models import HackathonTeam,HackathonTeamMember
 team_bp = Blueprint("teams", __name__)
 
 @team_bp.route('/',methods=['GET'])
@@ -110,23 +110,25 @@ def update_member_role(team_id,member_id):
     }), 200
 
 
-@team_bp.route('/<string:team_id>',methods=['GET'])
+@team_bp.route('/<string:team_id>', methods=['GET'])
 @jwt_required()
 def get_team(team_id):
-    team, members = TeamService.get_team_details(team_id)
+    team = HackathonTeam.query.get(team_id)
+    if not team:
+        return {"error": "Team not found"}, 404
 
-    response = {
-        "team_id": team.id,
-        "team_name": team.name,
-        "members_count": len(members),
-        "members": [
-            TeamMemberReadSchema(
-                member_id=str(m.member_id),
-                role=m.role.value,
-                joined_at=m.joined_at
-            ).dict()
-            for m in members
-        ]
-    }
+    return jsonify(
+        TeamService._serialize_team(team)
+    ), 200
 
-    return jsonify(response), 200
+@team_bp.route("/my-teams", methods=["GET"])
+@jwt_required()
+def get_my_teams():
+    user_id = int(get_jwt_identity())
+
+    teams = TeamService.get_my_teams(user_id)
+
+    return jsonify({
+        "results": teams,
+        "total": len(teams)
+    }), 200
