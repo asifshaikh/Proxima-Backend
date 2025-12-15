@@ -22,5 +22,11 @@ class User(db.Model):
             'created_at': self.created_at.isoformat()
         }
     
+    def to_basic_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
+    
     def repr(self):
         return f"<User {self.id} - {self.email}>"

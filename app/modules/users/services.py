@@ -91,4 +91,8 @@ class AuthService:
                 "email": user.email
             }         
         }   
-        
+    
+    @staticmethod
+    def get_all_users():
+        users = User.query.filter_by(isActive=True).all()
+        return [user.to_basic_dict() for user in users]
